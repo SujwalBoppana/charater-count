@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Analyzer</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/assests/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assests/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assests/images/favicon-16x16.png">
+    <link rel="manifest" href="/assests/images/site.webmanifest">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px; /* Set max-width for larger screens */
+            width: 90%;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .textarea-container {
+            width: 100%;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .clear-button {
+            padding: 10px 20px;
+            background-color: #e74c3c; /* Red background */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+        .clear-button:hover {
+            background-color: #c0392b; /* Darker red on hover */
+        }
+        .result-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .count-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            background-color: #f9fafc;
+        }
+        .count-summary div {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            padding: 20px;
+            width: 150px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .count-summary div p {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .copy-message {
+            color: green;
+            font-weight: bold;
+            display: none;
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            z-index: 1;
+        }
+        .repeated-words {
+            margin-top: 20px;
+            text-align: left;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9fafc;
+            /* Set max-height and overflow for the repeated words section */
+            max-height: 200px;
+            overflow: hidden;
+        }
+        .word-count {
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            min-width: 120px; 
+            max-width: 150px; 
+            text-align: center;
+            margin-bottom: 10px; 
+        }
+        .word-count p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .word-count span {
+            font-size: 14px;
+            color: #555;
+        }
+        #repeatedWordsHeader {
+            display: none; /* Initially hidden */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Analyzer</h1>
+        <div class="textarea-container">
+            <textarea id="inputText" placeholder="Enter your text here..." oninput="analyzeText()"></textarea>
+        </div>
+        <div class="button-container">
+            <button class="clear-button" onclick="resetResults()">Clear</button>
+        </div>
+        <div class="result-container">
+            <div class="count-summary" id="countSummary">
+                <div onclick="copyToClipboard('charCount', 'charCopyMessage', 'Characters')">
+                    <div class="copy-message" id="charCopyMessage">Copied to clipboard!</div>
+                    <p id="charCount">0</p>
+                    <p>Characters</p>
+                </div>
+                <div onclick="copyToClipboard('wordCount', 'wordCopyMessage', 'Words')">
+                    <div class="copy-message" id="wordCopyMessage">Copied to clipboard!</div>
+                    <p id="wordCount">0</p>
+                    <p>Words</p>
+                </div>
+                <div onclick="copyToClipboard('sentenceCount', 'sentenceCopyMessage', 'Sentences')">
+                    <div class="copy-message" id="sentenceCopyMessage">Copied to clipboard!</div>
+                    <p id="sentenceCount">0</p>
+                    <p>Sentences</p>
+                </div>
+                <div onclick="copyToClipboard('paragraphCount', 'paragraphCopyMessage', 'Paragraphs')">
+                    <div class="copy-message" id="paragraphCopyMessage">Copied to clipboard!</div>
+                    <p id="paragraphCount">0</p>
+                    <p>Paragraphs</p>
+                </div>
+                <div onclick="copyToClipboard('spaceCount', 'spaceCopyMessage', 'Spaces')">
+                    <div class="copy-message" id="spaceCopyMessage">Copied to clipboard!</div>
+                    <p id="spaceCount">0</p>
+                    <p>Spaces</p>
+                </div>
+                <div onclick="copyToClipboard('numberCount', 'numberCopyMessage', 'Numbers')">
+                    <div class="copy-message" id="numberCopyMessage">Copied to clipboard!</div>
+                    <p id="numberCount">0</p>
+                    <p>Numbers</p>
+                </div>
+                <div onclick="copyToClipboard('specialCharCount', 'specialCharCopyMessage', 'Special Characters')">
+                    <div class="copy-message" id="specialCharCopyMessage">Copied to clipboard!</div>
+                    <p id="specialCharCount">0</p>
+                    <p>Special Characters</p>
+                </div>
+            </div>
+            <div id="repeatedWordsTable">
+                <h2 id="repeatedWordsHeader">Repeated Words</h2>
+                <div class="repeated-words" id="repeatedWords">
+                    <!-- Repeated words will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function analyzeText() {
+            const text = document.getElementById('inputText').value.trim();
+
+            if (text.length === 0) {
+                resetResults();
+                return;
+            }
+
+            const characterCount = text.length;
+            const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+            const sentenceCount = text.split(/[.!?]/).filter(s => s.trim().length > 0).length;
+            const paragraphCount = text.split(/\n\n/).length;
+            const spaceCount = text.split(' ').length - 1;
+            const numberCount = (text.match(/\d/g) || []).length;
+            const specialCharCount = (text.match(/[$&+,:;=\\?@#|/'<>.^*()%!-]/g) || []).length;
+
+            const repeatedWords = findRepeatedWords(text);
+
+            updateResults({
+                characterCount,
+                wordCount,
+                sentenceCount,
+                paragraphCount,
+                spaceCount,
+                numberCount,
+                specialCharCount,
+                repeatedWords
+            });
+        }
+
+        function findRepeatedWords(text) {
+            const words = text.toLowerCase().split(/\W+/).filter(word => word.length > 0);
+            const wordMap = {};
+
+            words.forEach(word => {
+                wordMap[word] = (wordMap[word] || 0) + 1;
+            });
+
+            return Object.entries(wordMap).filter(([word, count]) => count > 1);
+        }
+
+        function updateResults(results) {
+            document.getElementById('charCount').textContent = results.characterCount;
+            document.getElementById('wordCount').textContent = results.wordCount;
+            document.getElementById('sentenceCount').textContent = results.sentenceCount;
+            document.getElementById('paragraphCount').textContent = results.paragraphCount;
+            document.getElementById('spaceCount').textContent = results.spaceCount;
+            document.getElementById('numberCount').textContent = results.numberCount;
+            document.getElementById('specialCharCount').textContent = results.specialCharCount;
+
+            const repeatedWordsContainer = document.getElementById('repeatedWords');
+            repeatedWordsContainer.innerHTML = '';
+            if (results.repeatedWords.length > 0) {
+                document.getElementById('repeatedWordsHeader').style.display = 'block';
+                results.repeatedWords.forEach(([word, count]) => {
+                    const wordElement = document.createElement('div');
+                    wordElement.className = 'word-count';
+                    wordElement.innerHTML = `<p>${word}</p><span>Count: ${count}</span>`;
+                    repeatedWordsContainer.appendChild(wordElement);
+                });
+                document.getElementById('repeatedWords').style.display = 'flex';
+            } else {
+                document.getElementById('repeatedWordsHeader').style.display = 'none';
+                document.getElementById('repeatedWords').style.display = 'none';
+            }
+        }
+
+        function resetResults() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('wordCount').textContent = '0';
+            document.getElementById('sentenceCount').textContent = '0';
+            document.getElementById('paragraphCount').textContent = '0';
+            document.getElementById('spaceCount').textContent = '0';
+            document.getElementById('numberCount').textContent = '0';
+            document.getElementById('specialCharCount').textContent = '0';
+            document.getElementById('repeatedWords').innerHTML = '';
+            document.getElementById('repeatedWordsHeader').style.display = 'none';
+            document.getElementById('repeatedWords').style.display = 'none';
+        }
+
+        function copyToClipboard(countId, messageId, label) {
+            const countText = document.getElementById(countId).textContent;
+            const tempInput = document.createElement('input');
+            document.body.appendChild(tempInput);
+            tempInput.value = `${label}: ${countText}`;
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const messageElement = document.getElementById(messageId);
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
